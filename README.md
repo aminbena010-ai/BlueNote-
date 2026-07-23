@@ -1,42 +1,55 @@
 # BlueNote+
 
-A high-performance, modular C++17 text editor built with the Qt6 framework, designed for developers and power users seeking a minimalist, distraction-free environment.
+> Developed by **BluePandaOpn** under **BluePanda Studios**.
+
+**BlueNote+** is a modern, lightweight, and cross-platform text and code editor built with **C++17** and **Qt6 (Widgets)**. Designed for speed and flexibility, it features a clean modular architecture, customizable tabs, real-time syntax highlighting, and robust local file management.
 
 ---
 
-## Features
+## Key Features
 
-- **Tabbed Interface**: Manage multiple documents simultaneously with clean tab lifecycle controls.
-- **Syntax Highlighting**: Real-time token-based code formatting and custom syntax rules.
-- **Find & Replace**: Advanced modal search and batch replacement tool supporting active editing contexts.
-- **Dark UI Aesthetic**: Native integration with custom dark palettes and smooth UI responsiveness.
-- **Modular Architecture**: Clean separation between core system managers (`src/core`) and the UI presentation layer (`src/ui`).
+- **Blazing Fast Performance**: Native C++17 core execution without heavy web-wrapper overhead.
+- **Modular Architecture**: Clean separation between core backend logic (`src/core/`) and Qt GUI components (`src/ui/`).
+- **Dynamic Tabbed Interface**: Seamlessly manage multiple open documents with custom editing widgets (`BlueNoteEditor`).
+- **Syntax Highlighting**: Built-in customizable syntax highlighting engine (`SyntaxHighlighter`).
+- **Cross-Platform Ready**: Fully compatible with Linux (AppImage) and Windows portable deployment.
 
 ---
 
-## Quick Installation & Execution
+## Project Structure
+```
+BlueNote/
+├── src/
+│   ├── core/           # Backend systems (ConfigManager, FileManager)
+│   └── ui/             # Frontend views (MainWindow, EditorTab, BlueNoteEditor)
+├── resources/          # Qt Resource System (.qrc) and icons
+├── docs/               # Comprehensive developer documentation
+└── dist/               # Packaging scripts and deployment assets
+```
+---
 
-To compile, package, and install **BlueNote+** on Ubuntu with absolute precision, run the following commands sequentially in your terminal:
+## Building from Source
 
-### 1. Install Build Dependencies
-\`\`\`bash
-sudo apt update
-sudo apt install -y build-essential cmake qt6-base-dev libgl1-mesa-dev
-\`\`\`
+Ensure you have **CMake (3.16+)**, a C++17 compiler, and **Qt6 Widgets** installed.
 
-### 2. Give Execution Permissions to Automation Scripts
-\`\`\`bash
-chmod +x package.sh install.sh
-\`\`\`
+# Configure the project
+cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-### 3. Compile and Package the Project
-\`\`\`bash
-./package.sh
-\`\`\`
+# Build the executable
+cmake --build build
 
-### 4. Install System-Wide
-\`\`\`bash
-sudo ./install.sh
-\`\`\`
+---
 
-Once completed, **BlueNote+** will be fully integrated into your desktop application menu and ready for execution.
+## Documentation & Guides
+
+Explore the `docs/` directory for detailed technical guides:
+- **[Installation Guide](docs/INSTALLATION.md)**: How to run and install BlueNote+.
+- **[Contributing Guide](CONTRIBUTING.md)**: Coding standards and PR workflows.
+- **[Architecture Overview](ARCHITECTURE.md)**: Deep dive into the internal design.
+- **[Changelog](docs/CHANGELOG.md)**: Version history and planned features.
+
+---
+
+## License
+
+This project is licensed under the **GNU Lesser General Public License v3.0 (LGPLv3)**. See the [LICENSE.md](LICENSE.md) file for details.
