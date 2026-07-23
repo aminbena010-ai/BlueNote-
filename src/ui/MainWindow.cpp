@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "FindReplaceDialog.h"
 #include <QMenuBar>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -147,6 +148,29 @@ void MainWindow::createMenus() {
     m_selectAllAction = m_editMenu->addAction("Seleccionar &todo");
     m_selectAllAction->setShortcut(QKeySequence::SelectAll);
     connect(m_selectAllAction, &QAction::triggered, this, &MainWindow::selectAll);
+
+    m_editMenu->addSeparator();
+
+    QAction *findAct = m_editMenu->addAction("&Buscar...");
+    findAct->setShortcut(QKeySequence::Find);
+    connect(findAct, &QAction::triggered, this, [this]() {
+        if (auto tab = currentTab()) {
+            // Cambia esto por el método que extraiga el QTextEdit real (ej. tab->textEdit() o tab->editor()->textEdit)
+            FindReplaceDialog *dialog = new FindReplaceDialog(tab->editor(), this); // <- Ajustar aquí
+            dialog->setAttribute(Qt::WA_DeleteOnClose);
+            dialog->show();
+        }
+    });
+
+    QAction *replaceAct = m_editMenu->addAction("&Reemplazar...");
+    replaceAct->setShortcut(QKeySequence::Replace);
+    connect(replaceAct, &QAction::triggered, this, [this]() {
+        if (auto tab = currentTab()) {
+            FindReplaceDialog *dialog = new FindReplaceDialog(tab->editor(), this); // <- Ajustar aquí
+            dialog->setAttribute(Qt::WA_DeleteOnClose);
+            dialog->show();
+        }
+    });
 }
 
 void MainWindow::undo() {
