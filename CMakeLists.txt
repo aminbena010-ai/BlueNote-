@@ -25,6 +25,8 @@ set(PROJECT_SOURCES
     src/ui/BlueNoteEditor.cpp
     src/ui/SyntaxHighlighter.h
     src/ui/SyntaxHighlighter.cpp
+    src/ui/FindReplaceDialog.cpp
+    src/ui/FindReplaceDialog.h
 
     # Módulo Core
     src/core/FileManager.h
