@@ -5,6 +5,7 @@
 #include <QTabWidget>
 #include <QMenu>
 #include <QAction>
+#include <QLabel>
 #include <QCloseEvent>
 #include "EditorTab.h"
 
@@ -42,6 +43,8 @@ protected:
 
 private:
     void createMenus();
+    void setupStatusBar();                  // <--- Nuevo: Inicializa la barra inferior
+    void updateStatusBarMetrics();          // <--- Nuevo: Actualiza palabras/caracteres en tiempo real
     void updateRecentFilesMenu();
     void addToRecentFiles(const QString &path);
 
@@ -56,6 +59,12 @@ private:
     QAction *m_pasteAction = nullptr;
     QAction *m_selectAllAction = nullptr;
     QAction *m_recentFileActions[MaxRecentFiles] = {nullptr};
+
+    // Widgets de la barra de estado inferior
+    QLabel *m_wordCountLabel = nullptr;     // <--- Nuevo
+    QLabel *m_charCountLabel = nullptr;     // <--- Nuevo
+    QLabel *m_encodingLabel = nullptr;      // <--- Nuevo
+    QLabel *m_saveStatusLabel = nullptr;    // <--- Nuevo (Indicador de guardado)
 };
 
 #endif // MAINWINDOW_H

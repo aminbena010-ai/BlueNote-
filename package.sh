@@ -19,12 +19,10 @@ mkdir -p dist/usr/bin
 mkdir -p dist/usr/share/applications
 mkdir -p dist/usr/share/icons/hicolor/256x256/apps
 
-# Copiar binario y recursos (incluyendo la raíz de dist para appimagetool)
 cp build/BlueNotePlus dist/usr/bin/
 cp resources/logo.png dist/usr/share/icons/hicolor/256x256/apps/bluenoteplus.png
 cp resources/logo.png dist/bluenoteplus.png
 
-# Crear AppRun
 cat << 'APPRUN' > dist/AppRun
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "${0}")")"
@@ -32,7 +30,6 @@ exec "${HERE}/usr/bin/BlueNotePlus" "$@"
 APPRUN
 chmod +x dist/AppRun
 
-# Crear el archivo .desktop con categorías compatibles
 cat << 'DESKTOP' > dist/usr/share/applications/bluenoteplus.desktop
 [Desktop Entry]
 Type=Application
@@ -41,7 +38,7 @@ Exec=BlueNotePlus
 Icon=bluenoteplus
 Categories=Utility;TextEditor;
 Terminal=false
-StartupWMClass=bluenoteplus
+StartupWMClass=BlueNotePlus
 MimeType=text/plain;
 DESKTOP
 
@@ -57,5 +54,4 @@ rm appimagetool-x86_64.AppImage
 
 echo "=========================================="
 echo "¡Empaquetado completado con éxito!"
-echo "Archivo generado: BlueNotePlus-x86_64.AppImage"
 echo "=========================================="
