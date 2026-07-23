@@ -1,42 +1,58 @@
 #pragma once
 
 #include <QSyntaxHighlighter>
-#include <QRegularExpression>
 #include <QTextCharFormat>
-#include <QList>
-
-namespace Ui {
+#include <QRegularExpression>
+#include <vector>
+#include <QString>
 
 class SyntaxHighlighter : public QSyntaxHighlighter {
     Q_OBJECT
 
 public:
-    explicit SyntaxHighlighter(QTextDocument *parent = nullptr);
+    enum class Language {
+        Plain,
+        Cpp,
+        Python,
+        JavaScript,
+        Rust,
+        Go,
+        Markdown
+    };
 
-    void setLanguageFromExtension(const QString &extension);
+    explicit SyntaxHighlighter(QTextDocument *parent = nullptr);
+    void setLanguage(Language lang);
+    void setCustomThemeColors(); // Permite ajustar o recargar estilos
 
 protected:
     void highlightBlock(const QString &text) override;
 
 private:
-    void setupCppRules();
-    void setupPythonRules();
-    void setupJsonRules();
-    void initFormats();
-
     struct HighlightingRule {
         QRegularExpression pattern;
         QTextCharFormat format;
     };
+    QVector<HighlightingRule> highlightingRules;
 
-    QList<HighlightingRule> m_highlightingRules;
+    // Patrones comunes
+    QRegularExpression commentStartExpression;
+    QRegularExpression commentEndExpression;
 
-    QTextCharFormat m_keywordFormat;
-    QTextCharFormat m_typeFormat;
-    QTextCharFormat m_stringFormat;
-    QTextCharFormat m_commentFormat;
-    QTextCharFormat m_numberFormat;
-    QTextCharFormat m_functionFormat;
+    // Formatos visuales (Estilo Dark / Glassmorphism)
+    QTextCharFormat keywordFormat;
+    QTextCharFormat classFormat;
+    QTextCharFormat functionFormat;
+    QTextCharFormat singleLineCommentFormat;
+    QTextCharFormat multiLineCommentFormat;
+    QTextCharFormat quotationFormat;
+    QTextCharFormat numberFormat;
+    QTextCharFormat operatorFormat;
+    QTextCharFormat preprocessorFormat;
+
+    void setupCppRules();
+    void setupPythonRules();
+    void setupJavaScriptRules();
+    void setupRustRules();
+    void setupGoRules();
+    void setupMarkdownRules();
 };
-
-} // namespace Ui

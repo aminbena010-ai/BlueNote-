@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "FindReplaceDialog.h"
+#include "SyntaxHighlighter.h"
 #include <QMenuBar>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -8,7 +9,7 @@
 #include <QStatusBar>
 #include <QTextDocument>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), findReplaceDialog(nullptr) {
     m_tabWidget = new QTabWidget(this);
     m_tabWidget->setTabsClosable(true);
     setCentralWidget(m_tabWidget);
@@ -21,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     });
 
     resize(1200, 742);
-    setWindowTitle("BlueNote+");
+    setWindowTitle("BlueNote+ [0.2.1]");
     createMenus();
     newFile();
 }
@@ -153,24 +154,11 @@ void MainWindow::createMenus() {
 
     QAction *findAct = m_editMenu->addAction("&Buscar...");
     findAct->setShortcut(QKeySequence::Find);
-    connect(findAct, &QAction::triggered, this, [this]() {
-        if (auto tab = currentTab()) {
-            // Cambia esto por el método que extraiga el QTextEdit real (ej. tab->textEdit() o tab->editor()->textEdit)
-            FindReplaceDialog *dialog = new FindReplaceDialog(tab->editor(), this); // <- Ajustar aquí
-            dialog->setAttribute(Qt::WA_DeleteOnClose);
-            dialog->show();
-        }
-    });
+    connect(findAct, &QAction::triggered, this, &MainWindow::showFindReplaceDialog);
 
     QAction *replaceAct = m_editMenu->addAction("&Reemplazar...");
     replaceAct->setShortcut(QKeySequence::Replace);
-    connect(replaceAct, &QAction::triggered, this, [this]() {
-        if (auto tab = currentTab()) {
-            FindReplaceDialog *dialog = new FindReplaceDialog(tab->editor(), this); // <- Ajustar aquí
-            dialog->setAttribute(Qt::WA_DeleteOnClose);
-            dialog->show();
-        }
-    });
+    connect(replaceAct, &QAction::triggered, this, &MainWindow::showFindReplaceDialog);
 }
 
 void MainWindow::undo() {
@@ -231,11 +219,15 @@ void MainWindow::newFile() {
 
     int index = m_tabWidget->addTab(tab, "Sin título");
     m_tabWidget->setCurrentIndex(index);
+    
+    // Aplicar lenguaje plano por defecto
+    detectAndApplyLanguage(tab, "");
     updateStatusBarMetrics();
 }
 
 void MainWindow::openFile() {
-    QString fileName = QFileDialog::getOpenFileName(this, "Abrir archivo");
+    QString fileName = QFileDialog::getOpenFileName(this, "Abrir archivo", "", 
+        tr("Todos los archivos (*);;C/C++ (*.cpp *.cc *.cxx *.h *.hpp *.c);;C# (*.cs);;Python (*.py);;Web (*.html *.css *.js *.ts);;Rust/Go (*.rs *.go);;Markdown (*.md)"));
     if (!fileName.isEmpty()) {
         openFile(fileName);
     }
@@ -249,6 +241,7 @@ void MainWindow::openFile(const QString &filePath) {
         if (current->loadFromFile(filePath)) {
             int idx = m_tabWidget->currentIndex();
             m_tabWidget->setTabText(idx, current->fileName());
+            detectAndApplyLanguage(current, filePath);
             addToRecentFiles(filePath);
             updateStatusBarMetrics();
             return;
@@ -277,6 +270,7 @@ void MainWindow::openFile(const QString &filePath) {
     if (tab->loadFromFile(filePath)) {
         int index = m_tabWidget->addTab(tab, tab->fileName());
         m_tabWidget->setCurrentIndex(index);
+        detectAndApplyLanguage(tab, filePath);
         addToRecentFiles(filePath);
         updateStatusBarMetrics();
     } else {
@@ -295,6 +289,7 @@ bool MainWindow::saveFile() {
 
     if (tab->save()) {
         m_tabWidget->setTabText(m_tabWidget->currentIndex(), tab->fileName());
+        detectAndApplyLanguage(tab, tab->filePath());
         updateStatusBarMetrics();
         return true;
     }
@@ -305,11 +300,13 @@ bool MainWindow::saveFileAs() {
     EditorTab *tab = currentTab();
     if (!tab) return false;
 
-    QString fileName = QFileDialog::getSaveFileName(this, "Guardar archivo");
+    QString fileName = QFileDialog::getSaveFileName(this, "Guardar archivo como", "", 
+        tr("Todos los archivos (*);;C/C++ (*.cpp *.h);;C# (*.cs);;Python (*.py);;JavaScript (*.js);;HTML (*.html);;Markdown (*.md)"));
     if (fileName.isEmpty()) return false;
 
     if (tab->saveToFile(fileName)) {
         m_tabWidget->setTabText(m_tabWidget->currentIndex(), tab->fileName());
+        detectAndApplyLanguage(tab, fileName);
         addToRecentFiles(fileName);
         updateStatusBarMetrics();
         return true;
@@ -326,6 +323,7 @@ void MainWindow::saveAllFiles() {
             } else {
                 tab->save();
                 m_tabWidget->setTabText(i, tab->fileName());
+                detectAndApplyLanguage(tab, tab->filePath());
             }
         }
     }
@@ -336,6 +334,7 @@ void MainWindow::reloadFile() {
     if (auto tab = currentTab()) {
         if (!tab->filePath().isEmpty()) {
             tab->loadFromFile(tab->filePath());
+            detectAndApplyLanguage(tab, tab->filePath());
             updateStatusBarMetrics();
         }
     }
@@ -395,5 +394,54 @@ void MainWindow::updateRecentFilesMenu() {
 void MainWindow::openRecentFile() {
     if (auto action = qobject_cast<QAction*>(sender())) {
         openFile(action->data().toString());
+    }
+}
+
+void MainWindow::showFindReplaceDialog() {
+    EditorTab *currentTab = qobject_cast<EditorTab*>(m_tabWidget->currentWidget());
+    if (!currentTab) return;
+
+    // Si ya existe, lo cerramos o destruimos para asegurarnos de que apunte al editor activo actual
+    if (findReplaceDialog) {
+        findReplaceDialog->close();
+        findReplaceDialog->deleteLater();
+        findReplaceDialog = nullptr;
+    }
+
+    // Creamos el diálogo pasándole el editor de la pestaña activa actual
+    findReplaceDialog = new FindReplaceDialog(currentTab->editor(), this);
+    findReplaceDialog->setAttribute(Qt::WA_DeleteOnClose);
+    findReplaceDialog->show();
+    findReplaceDialog->raise();
+    findReplaceDialog->activateWindow();
+}
+
+void MainWindow::detectAndApplyLanguage(EditorTab *editorTab, const QString &filePath) {
+    if (!editorTab || !editorTab->getHighlighter()) return;
+
+    QString ext = QFileInfo(filePath).suffix().toLower();
+    auto highlighter = editorTab->getHighlighter();
+
+    if (ext == "cpp" || ext == "cc" || ext == "cxx" || ext == "h" || ext == "hpp" || ext == "c") {
+        highlighter->setLanguage(SyntaxHighlighter::Language::Cpp);
+    } 
+    else if (ext == "py" || ext == "pyw") {
+        highlighter->setLanguage(SyntaxHighlighter::Language::Python);
+    } 
+    else if (ext == "js" || ext == "ts" || ext == "jsx" || ext == "tsx" || ext == "json") {
+        highlighter->setLanguage(SyntaxHighlighter::Language::JavaScript);
+    } 
+    else if (ext == "rs") {
+        highlighter->setLanguage(SyntaxHighlighter::Language::Rust);
+    } 
+    else if (ext == "go") {
+        highlighter->setLanguage(SyntaxHighlighter::Language::Go);
+    } 
+    else if (ext == "md" || ext == "markdown") {
+        highlighter->setLanguage(SyntaxHighlighter::Language::Markdown);
+    } 
+    else {
+        // HTML, CSS, C# y texto plano por defecto usan Plain o reglas base adaptadas
+        highlighter->setLanguage(SyntaxHighlighter::Language::Plain);
     }
 }

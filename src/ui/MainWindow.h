@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QCloseEvent>
 #include "EditorTab.h"
+#include "SyntaxHighlighter.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -38,13 +39,19 @@ public slots:
     void selectAll();
     void openRecentFile();
 
+    // Diálogo de búsqueda y reemplazo
+    void showFindReplaceDialog();
+
+    // Detección automática de lenguaje por extensión
+    void detectAndApplyLanguage(EditorTab *editorTab, const QString &filePath);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
     void createMenus();
-    void setupStatusBar();                  // <--- Nuevo: Inicializa la barra inferior
-    void updateStatusBarMetrics();          // <--- Nuevo: Actualiza palabras/caracteres en tiempo real
+    void setupStatusBar();                  // Inicializa la barra inferior
+    void updateStatusBarMetrics();          // Actualiza palabras/caracteres en tiempo real
     void updateRecentFilesMenu();
     void addToRecentFiles(const QString &path);
 
@@ -61,10 +68,13 @@ private:
     QAction *m_recentFileActions[MaxRecentFiles] = {nullptr};
 
     // Widgets de la barra de estado inferior
-    QLabel *m_wordCountLabel = nullptr;     // <--- Nuevo
-    QLabel *m_charCountLabel = nullptr;     // <--- Nuevo
-    QLabel *m_encodingLabel = nullptr;      // <--- Nuevo
-    QLabel *m_saveStatusLabel = nullptr;    // <--- Nuevo (Indicador de guardado)
+    QLabel *m_wordCountLabel = nullptr;     
+    QLabel *m_charCountLabel = nullptr;     
+    QLabel *m_encodingLabel = nullptr;      
+    QLabel *m_saveStatusLabel = nullptr;    // Indicador de guardado (*)
+
+    // Diálogo flotante de búsqueda y reemplazo
+    class FindReplaceDialog *findReplaceDialog = nullptr;
 };
 
 #endif // MAINWINDOW_H

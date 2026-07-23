@@ -20,6 +20,9 @@ public:
     bool isModified() const;
 
     Ui::BlueNoteEditor* editor() const { return m_editor; }
+    
+    // Método getter para acceder al resaltador de sintaxis desde MainWindow
+    SyntaxHighlighter* getHighlighter() const { return m_highlighter; }
 
 signals:
     void modificationChanged(bool modified);
@@ -28,6 +31,6 @@ private:
     void updateHighlighter();
 
     Ui::BlueNoteEditor *m_editor;
-    Ui::SyntaxHighlighter *m_highlighter;
+    SyntaxHighlighter *m_highlighter; // Corregido: Sin el prefijo Ui::
     QString m_filePath;
 };

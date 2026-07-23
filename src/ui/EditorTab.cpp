@@ -8,8 +8,8 @@
 EditorTab::EditorTab(QWidget *parent) : QWidget(parent) {
     m_editor = new Ui::BlueNoteEditor(this);
 
-    // Crear y asociar el resaltador de sintaxis al documento
-    m_highlighter = new Ui::SyntaxHighlighter(m_editor->document());
+    // Crear y asociar el resaltador de sintaxis (corregido sin prefijo Ui::)
+    m_highlighter = new SyntaxHighlighter(m_editor->document());
 
     QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     font.setPointSize(11);
@@ -26,13 +26,26 @@ EditorTab::EditorTab(QWidget *parent) : QWidget(parent) {
 }
 
 void EditorTab::updateHighlighter() {
-    if (m_filePath.isEmpty()) return;
-    QString ext = QFileInfo(m_filePath).suffix();
+    QString ext = QFileInfo(m_filePath).suffix().toLower();
     
-    // Resaltado de sintaxis
-    m_highlighter->setLanguageFromExtension(ext);
+    // Configuración universal de resaltado según extensión ampliada
+    if (ext == "cpp" || ext == "cc" || ext == "cxx" || ext == "h" || ext == "hpp" || ext == "c") {
+        m_highlighter->setLanguage(SyntaxHighlighter::Language::Cpp);
+    } else if (ext == "py" || ext == "pyw") {
+        m_highlighter->setLanguage(SyntaxHighlighter::Language::Python);
+    } else if (ext == "js" || ext == "ts" || ext == "jsx" || ext == "tsx" || ext == "json") {
+        m_highlighter->setLanguage(SyntaxHighlighter::Language::JavaScript);
+    } else if (ext == "rs") {
+        m_highlighter->setLanguage(SyntaxHighlighter::Language::Rust);
+    } else if (ext == "go") {
+        m_highlighter->setLanguage(SyntaxHighlighter::Language::Go);
+    } else if (ext == "md" || ext == "markdown") {
+        m_highlighter->setLanguage(SyntaxHighlighter::Language::Markdown);
+    } else {
+        m_highlighter->setLanguage(SyntaxHighlighter::Language::Plain);
+    }
     
-    // Configuración universal de plegado de código
+    // Configuración universal de plegado de código del editor
     m_editor->setLanguageExtension(ext); 
 }
 
