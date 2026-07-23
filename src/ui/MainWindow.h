@@ -38,11 +38,10 @@ public slots:
     void paste();
     void selectAll();
     void openRecentFile();
+    void openPluginManager();
 
-    // Diálogo de búsqueda y reemplazo
     void showFindReplaceDialog();
 
-    // Detección automática de lenguaje por extensión
     void detectAndApplyLanguage(EditorTab *editorTab, const QString &filePath);
 
 protected:
@@ -50,8 +49,8 @@ protected:
 
 private:
     void createMenus();
-    void setupStatusBar();                  // Inicializa la barra inferior
-    void updateStatusBarMetrics();          // Actualiza palabras/caracteres en tiempo real
+    void setupStatusBar();                  
+    void updateStatusBarMetrics();          
     void updateRecentFilesMenu();
     void addToRecentFiles(const QString &path);
 
@@ -62,18 +61,16 @@ private:
     QAction *m_undoAction = nullptr;
     QAction *m_redoAction = nullptr;
     QAction *m_cutAction = nullptr;
-    QAction *m_copyAction = nullptr;
+    QAction *m_copyAction = nullptr; // <-- Añadido aquí
     QAction *m_pasteAction = nullptr;
     QAction *m_selectAllAction = nullptr;
     QAction *m_recentFileActions[MaxRecentFiles] = {nullptr};
 
-    // Widgets de la barra de estado inferior
     QLabel *m_wordCountLabel = nullptr;     
     QLabel *m_charCountLabel = nullptr;     
     QLabel *m_encodingLabel = nullptr;      
-    QLabel *m_saveStatusLabel = nullptr;    // Indicador de guardado (*)
+    QLabel *m_saveStatusLabel = nullptr;    
 
-    // Diálogo flotante de búsqueda y reemplazo
     class FindReplaceDialog *findReplaceDialog = nullptr;
 };
 

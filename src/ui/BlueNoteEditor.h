@@ -32,6 +32,9 @@ public:
     int lineNumberAreaWidth();
     void markAllLinesAsSaved();
     void setLanguageExtension(const QString &ext) { m_fileExtension = ext.toLower(); }
+    
+    // Método para aplicar los ajustes del motor de configuración .fgc
+    void applyConfiguration();
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

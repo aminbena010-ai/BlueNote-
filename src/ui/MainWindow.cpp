@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "FindReplaceDialog.h"
 #include "SyntaxHighlighter.h"
+#include "PluginManagerDialog.h"
 #include <QMenuBar>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -22,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), findReplaceDialog
     });
 
     resize(1200, 742);
-    setWindowTitle("BlueNote+ [0.2.1]");
+    setWindowTitle("BlueNote+ [0.2.4]");
     createMenus();
     newFile();
 }
@@ -159,6 +160,15 @@ void MainWindow::createMenus() {
     QAction *replaceAct = m_editMenu->addAction("&Reemplazar...");
     replaceAct->setShortcut(QKeySequence::Replace);
     connect(replaceAct, &QAction::triggered, this, &MainWindow::showFindReplaceDialog);
+
+    QMenu *pluginsMenu = bar->addMenu("&Plugins");
+    QAction *managePluginsAct = pluginsMenu->addAction("&Gestor y Catálogo de Plugins...");
+    connect(managePluginsAct, &QAction::triggered, this, &MainWindow::openPluginManager);
+}
+
+void MainWindow::openPluginManager() {
+    Ui::PluginManagerDialog dialog(this);
+    dialog.exec();
 }
 
 void MainWindow::undo() {
@@ -220,7 +230,6 @@ void MainWindow::newFile() {
     int index = m_tabWidget->addTab(tab, "Sin título");
     m_tabWidget->setCurrentIndex(index);
     
-    // Aplicar lenguaje plano por defecto
     detectAndApplyLanguage(tab, "");
     updateStatusBarMetrics();
 }
@@ -401,14 +410,12 @@ void MainWindow::showFindReplaceDialog() {
     EditorTab *currentTab = qobject_cast<EditorTab*>(m_tabWidget->currentWidget());
     if (!currentTab) return;
 
-    // Si ya existe, lo cerramos o destruimos para asegurarnos de que apunte al editor activo actual
     if (findReplaceDialog) {
         findReplaceDialog->close();
         findReplaceDialog->deleteLater();
         findReplaceDialog = nullptr;
     }
 
-    // Creamos el diálogo pasándole el editor de la pestaña activa actual
     findReplaceDialog = new FindReplaceDialog(currentTab->editor(), this);
     findReplaceDialog->setAttribute(Qt::WA_DeleteOnClose);
     findReplaceDialog->show();
@@ -441,7 +448,6 @@ void MainWindow::detectAndApplyLanguage(EditorTab *editorTab, const QString &fil
         highlighter->setLanguage(SyntaxHighlighter::Language::Markdown);
     } 
     else {
-        // HTML, CSS, C# y texto plano por defecto usan Plain o reglas base adaptadas
         highlighter->setLanguage(SyntaxHighlighter::Language::Plain);
     }
 }

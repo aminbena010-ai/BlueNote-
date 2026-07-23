@@ -1,4 +1,5 @@
 #include "BlueNoteEditor.h"
+#include "../core/ConfigManager.h" // <-- Incluido para conectar con el motor de configuración
 #include <QPainter>
 #include <QTextBlock>
 #include <QScrollBar>
@@ -19,12 +20,28 @@ BlueNoteEditor::BlueNoteEditor(QWidget *parent)
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
 
-    setLineWrapMode(QPlainTextEdit::NoWrap);
-    
-    QFont font("Monospace");
+    // Aplicar la configuración nativa leída de los archivos .fgc al iniciar
+    applyConfiguration();
+}
+
+void BlueNoteEditor::applyConfiguration() {
+    auto &config = Core::ConfigManager::instance();
+
+    // 1. Aplicar fuente y tamaño leídos de config.fgc / editor.fgc
+    QFont font(config.fontFamily(), config.fontSize());
     font.setStyleHint(QFont::Monospace);
-    font.setPointSizeF(10.5);
     setFont(font);
+
+    // 2. Aplicar el tamaño del tabulador
+    QFontMetrics metrics(font);
+    setTabStopDistance(config.tabSize() * metrics.horizontalAdvance(' '));
+
+    // 3. Aplicar el ajuste de línea (Word Wrap)
+    if (config.wordWrap()) {
+        setLineWrapMode(QPlainTextEdit::WidgetWidth);
+    } else {
+        setLineWrapMode(QPlainTextEdit::NoWrap);
+    }
 }
 
 int BlueNoteEditor::lineNumberAreaWidth() {
@@ -187,7 +204,7 @@ int BlueNoteEditor::findDelimiterFoldEnd(int startBlockNumber, QChar openChar, Q
                 if (foundOpen) {
                     depth--;
                     if (depth == 0) {
-                        return i; // Retorna la línea de cierre exacta
+                        return i;
                     }
                 }
             }
@@ -227,13 +244,11 @@ int BlueNoteEditor::findIndentFoldEnd(int startBlockNumber) const {
     return (lastValidBlock > startBlockNumber) ? lastValidBlock : -1;
 }
 
-// DETECCION ESTRICTA: Solo es inicio de bloque si el cierre esta en una LINEA POSTERIOR
 bool BlueNoteEditor::isFoldStart(const QTextBlock &block, QString &outType) const {
     int lineNum = block.blockNumber();
     QString text = sanitizeLine(block.text()).trimmed();
     if (text.isEmpty()) return false;
 
-    // 1. Plegado por Llaves {}
     if (text.contains('{')) {
         int end = findDelimiterFoldEnd(lineNum, '{', '}');
         if (end > lineNum) {
@@ -242,7 +257,6 @@ bool BlueNoteEditor::isFoldStart(const QTextBlock &block, QString &outType) cons
         }
     }
 
-    // 2. Plegado por Corchetes []
     if (text.contains('[')) {
         int end = findDelimiterFoldEnd(lineNum, '[', ']');
         if (end > lineNum) {
@@ -251,7 +265,6 @@ bool BlueNoteEditor::isFoldStart(const QTextBlock &block, QString &outType) cons
         }
     }
 
-    // 3. Plegado por Paréntesis () (Solo si abarcan varias líneas)
     if (text.contains('(')) {
         int end = findDelimiterFoldEnd(lineNum, '(', ')');
         if (end > lineNum) {
@@ -260,7 +273,6 @@ bool BlueNoteEditor::isFoldStart(const QTextBlock &block, QString &outType) cons
         }
     }
 
-    // 4. Comentarios multilínea /* */
     if (text.contains("/*")) {
         int end = findCommentFoldEnd(lineNum);
         if (end > lineNum) {
@@ -269,7 +281,6 @@ bool BlueNoteEditor::isFoldStart(const QTextBlock &block, QString &outType) cons
         }
     }
 
-    // 5. Lenguajes por indentación (Python, GDScript, YAML, etc.) o bloques con ':'
     bool isIndentLang = (m_fileExtension == "py" || m_fileExtension == "yaml" || 
                          m_fileExtension == "yml" || m_fileExtension == "gd");
 
@@ -351,7 +362,6 @@ void BlueNoteEditor::paintLineNumbers(QPaintEvent *event) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             int lineNum = block.blockNumber();
 
-            // 1. Estado de modificación de la línea
             if (m_lineStates.contains(lineNum)) {
                 LineChangeState state = m_lineStates[lineNum];
                 if (state == LineChangeState::ModifiedUnsaved) {
@@ -361,7 +371,6 @@ void BlueNoteEditor::paintLineNumbers(QPaintEvent *event) {
                 }
             }
 
-            // 2. Número de línea
             QString number = QString::number(lineNum + 1);
             if (lineNum == currentLine) {
                 painter.setPen(QColor(255, 255, 255));
@@ -379,7 +388,6 @@ void BlueNoteEditor::paintLineNumbers(QPaintEvent *event) {
             int numberWidth = areaWidth - stateBarWidth - foldAreaWidth - 6;
             painter.drawText(numberX, top, numberWidth, lineHeaderHeight, Qt::AlignRight | Qt::AlignVCenter, number);
 
-            // 3. Líneas de Ámbito Multilineales (Scope Lines)
             int foldBaseX = areaWidth - foldAreaWidth + 4;
 
             for (const auto &scope : scopes) {
@@ -404,7 +412,6 @@ void BlueNoteEditor::paintLineNumbers(QPaintEvent *event) {
                 }
             }
 
-            // 4. Botón de Plegado ([+] / [-]) - Solo si abarca varias líneas
             QString foldType;
             bool isStart = isFoldStart(block, foldType);
             bool isFolded = m_foldedBlocks.contains(lineNum);

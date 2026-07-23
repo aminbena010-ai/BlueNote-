@@ -19,6 +19,8 @@ set(PROJECT_SOURCES
     # Módulo UI
     src/ui/MainWindow.h
     src/ui/MainWindow.cpp
+    src/EnvironmentManager.cpp
+    src/EnvironmentManager.h
     src/ui/EditorTab.h
     src/ui/EditorTab.cpp
     src/ui/BlueNoteEditor.h
@@ -27,12 +29,16 @@ set(PROJECT_SOURCES
     src/ui/SyntaxHighlighter.cpp
     src/ui/FindReplaceDialog.cpp
     src/ui/FindReplaceDialog.h
+    src/ui/PluginManagerDialog.h
+    src/ui/PluginManagerDialog.cpp
 
     # Módulo Core
     src/core/FileManager.h
     src/core/FileManager.cpp
     src/core/ConfigManager.h
     src/core/ConfigManager.cpp
+    src/core/PluginManager.h
+    src/core/PluginManager.cpp
 
     # Archivo de Recursos (Logo e Iconos)
     resources/resources.qrc

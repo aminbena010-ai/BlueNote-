@@ -11,7 +11,6 @@ public:
     void load();
     void save();
 
-    // Getters y Setters
     int tabSize() const { return m_tabSize; }
     void setTabSize(int size) { m_tabSize = size; }
 
@@ -27,6 +26,9 @@ public:
     bool wordWrap() const { return m_wordWrap; }
     void setWordWrap(bool wrap) { m_wordWrap = wrap; }
 
+    bool isLightTheme() const { return m_isLightTheme; }
+    void setLightTheme(bool light) { m_isLightTheme = light; }
+
 private:
     ConfigManager();
     ~ConfigManager() = default;
@@ -34,11 +36,14 @@ private:
     ConfigManager(const ConfigManager&) = delete;
     ConfigManager& operator=(const ConfigManager&) = delete;
 
+    void parseFile(const QString &filePath);
+
     int m_tabSize = 4;
     bool m_useSpacesForTabs = true;
     QString m_fontFamily = "Monospace";
     int m_fontSize = 11;
     bool m_wordWrap = false;
+    bool m_isLightTheme = false;
 };
 
 } // namespace Core
